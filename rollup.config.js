@@ -30,5 +30,6 @@ export default {
       globals
     }
   ],
-  plugins: [typescript(), cleanup(), terser()]
+  plugins: [typescript(), cleanup(), terser()],
+  external: ['socket.io-client']
 }

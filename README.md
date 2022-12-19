@@ -1,87 +1,38 @@
-# ChainHandler
-
-This is the operation library of Smart Contract and Wallet.
+# YCD WebRTC SDK
 
 ## Usage
 
-1. Install ChainHandler NPM package
+1. 安装 socket.io-client、ycd-webrtc-sdk 包
 
 ```bash
-npm install --save chain-handler
-
-# OR
-
-yarn add chain-handler
+npm install socket.io-client -S // sdk依赖此包
+npm install ycd-webrtc-sdk -S
 ```
 
-2. Then you can add ChainHandler to your Dapp as follows
+2. Example
 
 ```js
-import { ConnectToInjected, ConnectToCoinbase, ConnectToWalletConnect, Networks, InjectedTag } from 'chain-handler';
+import { WebRTCClient } from "ycd-webrtc-sdk";
 
-// Initialization InjectedHandler
-let injectedHandler = ConnectToInjected();
-// BitKeep Wallet
-let injectedHandler = ConnectToInjected(InjectedTag.BitKeep);
-// Coin98 Wallet
-let injectedHandler = ConnectToInjected(InjectedTag.Coin98);
-// if it's Coinbase
-let injectedHandler = ConnectToCoinbase({
-  appName: 'your app name',
-  appLogoURL: 'http://xxxxx.xxx/xxx.png',
-  network: Networks.ETH_MAIN,
-  jsonrpcURL: 'your infura url' // optional
+const client = new WebRTCClient({
+  server: string, // signal server 地址
+  remoteElement: element, // 接收远端数据的Element  Audio/Video
+  localElement: element, // 本地数据的Element  Audio/Video  可选
+  events: {
+    // 事件列表
+    onJoined: () => {}, // 成功进入房间后回调
+    onLeft: () => {}, // 成功离开房间回调
+    onCustomerJoined: () => {}, // 客户离开房间回调
+    onFull: () => {}, // 房间满员回调
+    onBye: () => {}, // 已关闭所有连接
+  },
 });
-// Initialization is successful after.
-// Get the latest wallet address.
-let address = await injectedHandler.getAddress();
 
-// Switch networks
-injectedHandler.switchNetwork(Networks.BSC_MAIN); // BSC main net
-injectedHandler.switchNetwork(Networks.ETH_MAIN); // ETH main net
-injectedHandler.switchNetwork(Networks.OEC_MAIN); // OEC main net
-injectedHandler.switchNetwork(Networks.ETH_GOERLI); // Ethereum Testnet Görli
+// 加入/创建房间
+client.join(roomid); //传入一个房间id  string   可以用一个当前客户的唯一标示
 
-// listen for changes
-injectedHandler.listenForChanges('chainChanged', () => {console.log('network changed')});
-injectedHandler.listenForChanges('accountsChanged', () => {console.log('account changed')});
-
-// Initialization WalletConnectHandler
-const options = {
-  bridge?: string,
-  qrcode?: bool,
-  infuraid?: string,
-  network: Networks,
-  qrcodeModalOptions?: object
-};
-
-let walletConnectHandler;
-ConnectToWalletConnect(options)
-  .then((res) => {
-    walletConnectHandler = res.walletConnectHandler;
-    console.log(res.walletConnectHandler);
-    console.log(res.address);
-  })
-  .catch(err => console.error(err));
-
-// listen for changes
-walletConnectHandler.listenForChanges('accountsChanged', (accounts) => {});
-walletConnectHandler.listenForChanges('chainChanged', (chainId) => {});
-walletConnectHandler.listenForChanges('disconnect', (code, reason) => {});
-
-// Disconnect the Wallet Connect.
-walletConnectHandler.disconnect();
-
-// Both has some functions too.
-
-async queryContract(address, abi,funcName,...args);
-
-async runContractTransactionFunc(address, abi, funcName,...args);
-
-async signMessage(message, toBytes = false);
-
-formatUnits(ether, num);
-
+// 离开房间
+client.leave(); // 离开房间，开始断开流传输等操作
 ```
 
 ## License
