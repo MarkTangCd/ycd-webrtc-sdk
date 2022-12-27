@@ -23,7 +23,7 @@ const client = new WebRTCClient({
     // 事件列表
     onJoined: () => {}, // 成功进入房间后回调
     onLeft: () => {}, // 成功离开房间回调
-    onCustomerJoined: () => {}, // 客户离开房间回调
+    onCustomerJoined: () => {}, // 客户(其他人)加入房间回调
     onFull: () => {}, // 房间满员回调
     onBye: () => {}, // 已关闭所有连接
   },
