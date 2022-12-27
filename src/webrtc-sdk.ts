@@ -14,10 +14,9 @@ import {
 } from './constants';
 
 interface Events {
-  onInit: () => void;
   onJoined: () => void;
   onLeft: () => void;
-  onCustomerJoined: (room: string, id: string) => void;
+  onCustomerJoined: (roomid: string) => void;
   onFull: () => void;
   onBye: () => void;
 }
@@ -85,6 +84,7 @@ export class WebRTCClient {
 
     this.state = ClientState.JOINED_CONN;
     this.call();
+    this.events.onCustomerJoined(roomID);
   }
 
   private call() {
