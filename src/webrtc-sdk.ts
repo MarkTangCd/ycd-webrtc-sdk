@@ -1,4 +1,3 @@
-// @ts-ignore
 import io, { Socket } from 'socket.io-client';
 import {
   JOIN,
@@ -15,6 +14,7 @@ import {
 } from './constants';
 
 interface Events {
+  onInit: () => void;
   onJoined: () => void;
   onLeft: () => void;
   onCustomerJoined: (room: string, id: string) => void;
@@ -27,6 +27,7 @@ interface WebRTCClientOptions {
   remoteElement: HTMLVideoElement | HTMLAudioElement;
   events: Events;
   server: string;
+  roomID: string;
 }
 
 export class WebRTCClient {
@@ -48,6 +49,7 @@ export class WebRTCClient {
     this.events = options.events;
     this.state = ClientState.INIT;
     this.server = options.server;
+    this.roomID = options.roomID;
     this.connSignalServer();
   }
 
@@ -225,6 +227,9 @@ export class WebRTCClient {
       this.socket.on(FULL, this.full.bind(this));
       this.socket.on(BYE, this.bye.bind(this));
       this.socket.on(DISCONNECT, this.disconnect.bind(this));
+
+      // init done
+      this.join();
     }
   }
 
@@ -290,12 +295,13 @@ export class WebRTCClient {
         }
       } else {
         constraints = {
-          video: false,
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true
-          }
+          video: {
+            width: 640,
+            height: 480,
+            frameRate: 15,
+            facingMode: 'enviroment'
+          },
+          audio: false
         }
       }
 
@@ -334,10 +340,9 @@ export class WebRTCClient {
     throw new Error('Failed to get Media Stream!');
   }
 
-  public join(room: string) {
-    if (room !== '' && this.socket) {
-      this.roomID = room;
-      this.socket.emit(JOIN, room);
+  private join() {
+    if (this.socket) {
+      this.socket.emit(JOIN, this.roomID);
     } else {
       throw Error('Not connected to signaling server.');
     }
