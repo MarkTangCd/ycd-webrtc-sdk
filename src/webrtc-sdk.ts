@@ -286,22 +286,25 @@ export class WebRTCClient {
       } else if (this.localElement instanceof HTMLVideoElement) {
         constraints = {
           video: {
-            width: 640,
-            height: 480,
+            width: 400,
+            height: 550,
             frameRate: 15,
             facingMode: 'enviroment'
           },
-          audio: false
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
         }
       } else {
         constraints = {
-          video: {
-            width: 640,
-            height: 480,
-            frameRate: 15,
-            facingMode: 'enviroment'
-          },
-          audio: false
+          video: false,
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
         }
       }
 
