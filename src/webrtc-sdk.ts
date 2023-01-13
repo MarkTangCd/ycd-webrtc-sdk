@@ -291,20 +291,12 @@ export class WebRTCClient {
             frameRate: 15,
             facingMode: 'enviroment'
           },
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true
-          }
+          audio: false
         }
       } else {
         constraints = {
           video: false,
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true
-          }
+          audio: false
         }
       }
 
