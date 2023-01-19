@@ -14,7 +14,7 @@ import {
 } from './constants';
 
 interface Events {
-  onJoined: () => void;
+  onJoined: (total: number) => void;
   onLeft: () => void;
   onCustomerJoined: (roomid: string) => void;
   onFull: () => void;
@@ -22,7 +22,7 @@ interface Events {
 }
 
 interface WebRTCClientOptions {
-  localElement?: HTMLVideoElement | HTMLAudioElement;
+  localElement?: HTMLVideoElement | HTMLAudioElement | boolean;
   remoteElement: HTMLVideoElement | HTMLAudioElement;
   events: Events;
   server: string;
@@ -30,7 +30,7 @@ interface WebRTCClientOptions {
 }
 
 export class WebRTCClient {
-  localElement?: HTMLVideoElement | HTMLAudioElement;
+  localElement?: HTMLVideoElement | HTMLAudioElement | boolean;
   remoteElement: HTMLVideoElement | HTMLAudioElement;
   state: ClientState;
   server: string;
@@ -52,12 +52,12 @@ export class WebRTCClient {
     this.connSignalServer();
   }
 
-  private joined(roomID: string, id: string) {
-    console.log('receive joined message:', roomID, this.state);
+  private joined(roomID: string, id: string, total: number) {
+    console.log('receive joined message:', roomID, this.state, id, total);
     this.state = ClientState.JOINED;
     this.createPeerConnection();
     this.bindTracks();
-    this.events.onJoined();
+    this.events.onJoined(total);
   }
 
   private left(roomID: string) {
@@ -70,12 +70,12 @@ export class WebRTCClient {
   public leave() {
     if (this.socket) {
       this.socket.emit(LEAVE, this.roomID);
-      this.hangUp();
+      this.pc && this.hangUp();
       this.closeLocalMedia();
     }
   }
 
-  private otherJoined(roomID: string) {
+  private otherJoined(roomID: string, id: string, total: number) {
     console.log('receive otherjoined message:', roomID, this.state);
     if (this.state === ClientState.JOINED_UNBIND) {
       this.createPeerConnection();
@@ -120,7 +120,7 @@ export class WebRTCClient {
     this.socket.emit(MESSAGE, roomID, data);
   }
 
-  private full(roomID: string) {
+  private full(roomID: string, id: string, total: number) {
     console.log('receive full message:', roomID, this.state);
     this.socket?.disconnect();
     this.hangUp();
@@ -293,10 +293,20 @@ export class WebRTCClient {
           },
           audio: false
         }
+      } else if (this.localElement === false) {
+        constraints = {
+          video: {
+            width: 400,
+            height: 550,
+            frameRate: 15,
+            facingMode: 'enviroment'
+          },
+          audio: true
+        }
       } else {
         constraints = {
           video: false,
-          audio: false
+          audio: true
         }
       }
 
@@ -322,7 +332,7 @@ export class WebRTCClient {
       this.localStream = stream;
     }
 
-    if (this.localElement) {
+    if (this.localElement && typeof this.localElement !== 'boolean') {
       this.localElement.srcObject = this.localStream;
     }
 
