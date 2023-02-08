@@ -19,6 +19,8 @@ interface Events {
   onCustomerJoined: (roomid: string) => void;
   onFull: () => void;
   onBye: () => void;
+  onConnectionFailed: (error: any) => void;
+  onError: (error: any) => void;
 }
 
 interface WebRTCClientOptions {
@@ -114,7 +116,8 @@ export class WebRTCClient {
 
   private sendMessage(roomID: string, data: any) {
     if (!this.socket) {
-      throw Error('Socket is null');
+      this.events.onError(new Error('socket is null'));
+      return;
     }
     // 传递SDP给Signal server
     this.socket.emit(MESSAGE, roomID, data);
@@ -141,7 +144,8 @@ export class WebRTCClient {
 
   private hangUp() {
     if (!this.pc) {
-      throw new Error('pc is null or undefined!');
+      this.events.onError(new Error('pc is null or undefined!'));
+      return;
     }
 
     this.offerDesc = undefined;
@@ -167,11 +171,11 @@ export class WebRTCClient {
 
   private bindTracks() {
     if (!this.pc) {
-      throw new Error('pc is null or undefined!');
+      this.events.onError(new Error('pc is null or undefined!'));
     }
 
     if (!this.localStream) {
-      throw new Error('localStream is null or undefined!');
+      this.events.onError(new Error('localStream is null or undefined!'));
     }
 
     this.localStream.getTracks().forEach((track) => {
@@ -183,7 +187,7 @@ export class WebRTCClient {
     console.log('receive message!', this.roomID, data);
 
     if (!data) {
-      console.error('the message is invalid!');
+      this.events.onError(new Error('the message is invalid!'));
       return;
     }
 
@@ -202,7 +206,7 @@ export class WebRTCClient {
       });
       this.pc?.addIceCandidate(candidate);
     } else {
-      throw new Error('the message is invalid!');
+      this.events.onError(new Error('the message is invalid!'));
     }
   }
 
@@ -253,7 +257,7 @@ export class WebRTCClient {
       console.log('bind the on track event');
       this.pc.ontrack = this.getRemoteStream.bind(this);
     } else {
-      throw Error('the pc have be created!');
+      this.events.onError(new Error('the pc have be created!'));
     }
   }
 
@@ -270,7 +274,7 @@ export class WebRTCClient {
   private start() {
     if (!navigator.mediaDevices ||
       !navigator.mediaDevices.getUserMedia) {
-      throw Error('the getUserMedia is not supported!');
+      this.handleError(Error('the getUserMedia is not supported!'));
     } else {
       let constraints;
 
@@ -285,22 +289,24 @@ export class WebRTCClient {
         }
       } else if (this.localElement instanceof HTMLVideoElement) {
         constraints = {
-          video: {
-            width: 400,
-            height: 550,
-            frameRate: 15,
-            facingMode: 'enviroment'
-          },
+          // video: {
+          //   width: 400,
+          //   height: 550,
+          //   frameRate: 15,
+          //   facingMode: 'enviroment'
+          // },
+          video: true,
           audio: false
         }
       } else if (this.localElement === false) {
         constraints = {
-          video: {
-            width: 400,
-            height: 550,
-            frameRate: 15,
-            facingMode: 'enviroment'
-          },
+          // video: {
+          //   width: 400,
+          //   height: 550,
+          //   frameRate: 15,
+          //   facingMode: 'enviroment'
+          // },
+          video: true,
           audio: true
         }
       } else {
@@ -341,15 +347,14 @@ export class WebRTCClient {
   }
 
   private handleError(e: any) {
-    console.error(e);
-    throw new Error('Failed to get Media Stream!');
+    this.events.onError(e);
   }
 
   private join() {
     if (this.socket) {
       this.socket.emit(JOIN, this.roomID);
     } else {
-      throw Error('Not connected to signaling server.');
+      this.events.onConnectionFailed(new Error('Not connected to signaling server.'));
     }
   }
 
