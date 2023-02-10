@@ -45,6 +45,8 @@ export class WebRTCClient {
   private remoteStream?: MediaStream;
 
   constructor(options: WebRTCClientOptions) {
+    console.log('Starting Debug');
+    console.log(options);
     this.localElement = options.localElement;
     this.remoteElement = options.remoteElement;
     this.events = options.events;
@@ -232,6 +234,7 @@ export class WebRTCClient {
       this.socket.on(BYE, this.bye.bind(this));
       this.socket.on(DISCONNECT, this.disconnect.bind(this));
 
+      console.log('bind events');
       // init done
       this.join();
     }
@@ -276,6 +279,7 @@ export class WebRTCClient {
       !navigator.mediaDevices.getUserMedia) {
       this.handleError(Error('the getUserMedia is not supported!'));
     } else {
+      console.log('navigator.mediaDevices.getUserMedia');
       let constraints;
 
       if (this.localElement instanceof HTMLAudioElement) {
@@ -325,10 +329,12 @@ export class WebRTCClient {
   private connect() {
     this.socket = io(this.server);
 
+    console.log('Start conect');
     this.bindEvents();
   }
 
   private getMediaStream(stream: MediaStream) {
+    console.log('getMediaStream callback');
     if (this.localStream) {
       stream.getAudioTracks().forEach((track) => {
         this.localStream?.addTrack(track);
@@ -352,6 +358,7 @@ export class WebRTCClient {
 
   private join() {
     if (this.socket) {
+      console.log('Connect the room by socket');
       this.socket.emit(JOIN, this.roomID);
     } else {
       this.events.onConnectionFailed(new Error('Not connected to signaling server.'));
