@@ -1,6 +1,6 @@
 {
   "name": "ycd-webrtc-sdk",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "main": "lib/bundle.cjs.js",
   "module": "lib/bundle.esm.js",
   "browser": "lib/bundle.browser.js",
